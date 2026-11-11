@@ -1,6 +1,5 @@
 import config
 
-
 def ejecutar(publicaciones):
     precios = {"nuevo": [], "usado": []}
 
