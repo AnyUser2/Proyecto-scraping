@@ -1,0 +1,46 @@
+name: CI/CD
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Instalar dependencias
+        run: python -m pip install -r requirements.txt
+      - name: Ejecutar pruebas automatizadas
+        run: python -m unittest discover -s tests -v
+
+  publicar:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: pruebas
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+      - name: Crear paquete de distribución
+        run: zip -j "proyecto-scraping-${GITHUB_REF_NAME}.zip" README.md *.py requirements.txt
+      - name: Publicar GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: proyecto-scraping-${{ github.ref_name }}.zip
